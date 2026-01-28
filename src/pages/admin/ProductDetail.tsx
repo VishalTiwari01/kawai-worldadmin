@@ -39,7 +39,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await axios.get(`https://oyster-app-u5rld.ondigitalocean.app/api/admin/products/${id}`);
+        const res = await axios.get(`https://kawaiworld-nkppi.ondigitalocean.app/api/admin/products/${id}`);
         console.log(res.data.data);
         setProduct(res.data.data);
       } finally {

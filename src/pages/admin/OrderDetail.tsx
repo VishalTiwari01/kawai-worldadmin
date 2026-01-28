@@ -63,7 +63,7 @@ const OrderDetail = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`https://oyster-app-u5rld.ondigitalocean.app/api/admin/orders/${orderId}`);
+        const { data } = await axios.get(`https://kawaiworld-nkppi.ondigitalocean.app/api/admin/orders/${orderId}`);
         setOrder(data.data);
       } catch (err) {
         console.error(err);

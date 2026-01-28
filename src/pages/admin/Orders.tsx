@@ -88,7 +88,7 @@ const AdminOrders = () => {
         startDate,
         endDate,
       };
-      const { data } = await axios.get("https://oyster-app-u5rld.ondigitalocean.app/api/admin/orders", { params });
+      const { data } = await axios.get("https://kawaiworld-nkppi.ondigitalocean.app/api/admin/orders", { params });
       setOrders(data.data);
       setPagination(data.pagination);
     } catch (err) {
