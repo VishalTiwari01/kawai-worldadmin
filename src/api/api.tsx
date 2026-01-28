@@ -2,7 +2,7 @@ import { Product } from "@/types/product";
 import { Order } from "@/types/order";
 import axios from "axios";
 
-const API_BASE_URL =  'https://oyster-app-u5rld.ondigitalocean.app/api';
+const API_BASE_URL =  'https://kawaiworld-nkppi.ondigitalocean.app/api';
 // export const API_BASE_URL = "http://localhost:1209/api";
 interface SaveProductResponse {
   id: string;

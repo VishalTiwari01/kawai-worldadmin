@@ -92,7 +92,7 @@ export const ProductForm = ({
   >(null);
 
   // API base URL
-  const API_BASE_URL = "https://oyster-app-u5rld.ondigitalocean.app/api";
+  const API_BASE_URL = "https://kawaiworld-nkppi.ondigitalocean.app/api";
   // const API_BASE_URL =  'http://localhost:1209/api';
   
 
