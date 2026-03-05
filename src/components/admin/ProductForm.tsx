@@ -155,9 +155,6 @@ useEffect(() => {
   const uploadImages = async (
     files: File[]
   ): Promise<Array<{ url: string; public_id: string }>> => {
-    // add api for upload image here
-    // Example: Call your image upload API and return the uploaded image URLs
-    // This is a demo, replace with actual API call if needed
     try {
       const formData = new FormData();
       files.forEach((file) => formData.append("image", file));

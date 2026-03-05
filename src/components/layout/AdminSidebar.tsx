@@ -6,6 +6,7 @@ import {
   LogOut,
   Package,
   ShoppingCart,
+  FolderTree,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -25,6 +26,7 @@ import Logo from "../../assests/logoA.png";
 const navigationItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Products", url: "/admin/products", icon: Package },
+   { title: "Categories", url: "/admin/categories", icon: FolderTree },
   { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   // { title: "Settings", url: "/admin/settings", icon: Settings },

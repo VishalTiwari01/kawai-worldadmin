@@ -9,6 +9,22 @@ interface SaveProductResponse {
   message?: string;
 }
 
+// ================= CATEGORY TYPES =================
+
+export interface Category {
+  _id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  parentId?: string | null;
+  level?: number;
+  path?: string;
+  hasChildren?: boolean;
+  isActive?: boolean;
+  children?: Category[];
+}
+
+
 import { signIn } from "@/redux/slices/authSlice";
 
 export const loginUser = async (mobile, dispatch) => {
@@ -230,4 +246,154 @@ export const getDashboardStats = async () => {
     console.error("getDashboardStats() failed:", error);
     return null;
   }
+};
+
+
+
+
+// ================= GET ROOT CATEGORIES =================
+
+export const getCategoryTree = async () => {
+  const res = await axios.get(`${API_BASE_URL}/categories/tree`);
+  return res.data.data;
+};
+
+// ================= GET FULL TREE =================
+
+// export const getCategoryTree = async (): Promise<Category[]> => {
+//   try {
+//     const response = await axios.get(`${API_BASE_URL}/categories/tree`);
+//     return response.data?.data || [];
+//   } catch (error) {
+//     console.error("Error fetching category tree:", error);
+//     return [];
+//   }
+// };
+
+// ================= GET SUBTREE =================
+
+export const getSubTree = async (id: string): Promise<Category[]> => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/categories/subtree/${id}`
+    );
+
+    return response.data?.data || [];
+  } catch (error) {
+    console.error("Error fetching subtree:", error);
+    return [];
+  }
+};
+// Helper function: image upload
+export const uploadCategoryImage = async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+console.log("Image upload response:", formData);
+    const response = await axios.post(
+      `${API_BASE_URL}/uploads/images`,
+      formData
+    );
+    
+    return response.data.url;
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    throw new Error("Image upload failed");
+  }
+};
+// ================= CREATE CATEGORY =================
+
+export const createCategory = async (data: Partial<Category>) => {
+  const token = localStorage.getItem("token");
+
+  const response = await axios.post(
+    `${API_BASE_URL}/categories`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data.data;
+};
+
+// ================= UPDATE CATEGORY =================
+
+export const updateCategory = async (
+  id: string,
+  data: Partial<Category>,
+  imageFile?: File
+): Promise<Category | null> => {
+  try {
+    const token = localStorage.getItem("token");
+
+    let imageUrl = data.imageUrl;
+
+    if (imageFile) {
+      imageUrl = await uploadCategoryImage(imageFile);
+    }
+
+    const payload = {
+      ...data,
+      imageUrl,
+    };
+
+    const response = await axios.put(
+      `${API_BASE_URL}/categories/${id}`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data?.data || null;
+  } catch (error: any) {
+    console.error("Error updating category:", error);
+
+    throw new Error(
+      error?.response?.data?.message || "Failed to update category"
+    );
+  }
+};
+
+// ================= DELETE CATEGORY =================
+
+export const deleteCategory = async (id: string): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.delete(`${API_BASE_URL}/categories/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    return false;
+  }
+};
+
+// ================= TOGGLE CATEGORY STATUS =================
+
+export const toggleCategoryStatus = async (
+  id: string,
+  isActive: boolean
+) => {
+  const token = localStorage.getItem("token");
+
+  return axios.put(
+    `${API_BASE_URL}/categories/${id}`,
+    { isActive },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 };

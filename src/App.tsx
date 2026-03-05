@@ -20,6 +20,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import Orders from "./pages/admin/Orders";
 import OrderDetail from "./pages/admin/OrderDetail";
 import ProductDetail from "./pages/admin/ProductDetail";
+import Categories from "./pages/admin/Categories";
 
 const App = () => (
   <Provider store={store}>
@@ -63,6 +64,16 @@ const App = () => (
                   </PrivateRoute>
                 }
               />
+              <Route
+  path="/admin/categories"
+  element={
+    <PrivateRoute>
+      <AdminLayout>
+        <Categories />
+      </AdminLayout>
+    </PrivateRoute>
+  }
+/>
               <Route
                 path="/admin/users"
                 element={
