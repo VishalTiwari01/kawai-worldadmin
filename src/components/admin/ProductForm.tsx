@@ -98,25 +98,25 @@ export const ProductForm = ({
   });
 
   // Flatten category tree for dropdown
-  const flattenCategories = (categories: any[], level = 0) => {
-    let result: any[] = [];
+const flattenCategories = (categories: any[], level = 0) => {
+  let result: any[] = [];
 
-    categories.forEach((cat) => {
-      result.push({
-        _id: cat._id,
-        name: cat.name,
-        level,
-      });
-
-      if (cat.children && cat.children.length > 0) {
-        result = result.concat(flattenCategories(cat.children, level + 1));
-      }
+  categories.forEach((cat) => {
+    result.push({
+      _id: cat._id,
+      name: cat.name,
+      level,
     });
 
-    return result;
-  };
+    if (cat.children && cat.children.length > 0) {
+      result = result.concat(flattenCategories(cat.children, level + 1));
+    }
+  });
 
-  const flatCategories = flattenCategories(categories);
+  return result;
+};
+
+const flatCategories = flattenCategories(categories);
 
   // API base URL
   const API_BASE_URL = "https://kawaiworld-nkppi.ondigitalocean.app/api";
@@ -582,14 +582,14 @@ export const ProductForm = ({
 
                     <SelectContent>
                       {flatCategories.map((cat) => (
-                        <SelectItem key={cat._id} value={cat._id}>
-                          <span
-                            style={{ paddingLeft: `${cat.level * 16}px` }}
-                            className="flex items-center"
-                          >
-                            {cat.name}
-                          </span>
-                        </SelectItem>
+                    <SelectItem key={cat._id} value={cat._id}>
+  <span
+    style={{ paddingLeft: `${cat.level * 16}px` }}
+    className="flex items-center"
+  >
+    {cat.name}
+  </span>
+</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
