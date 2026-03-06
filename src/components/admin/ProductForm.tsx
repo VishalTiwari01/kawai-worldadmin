@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { getCategoryTree } from "@/api/api";
 
 // Helper function to validate MongoDB ObjectId
 const isValidMongoId = (id: string): boolean => {
@@ -90,49 +92,72 @@ export const ProductForm = ({
   const [uploadingVariantIndex, setUploadingVariantIndex] = useState<
     number | null
   >(null);
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories-tree"],
+    queryFn: getCategoryTree,
+  });
+
+  // Flatten category tree for dropdown
+  const flattenCategories = (categories: any[], level = 0) => {
+    let result: any[] = [];
+
+    categories.forEach((cat) => {
+      result.push({
+        _id: cat._id,
+        name: cat.name,
+        level,
+      });
+
+      if (cat.children && cat.children.length > 0) {
+        result = result.concat(flattenCategories(cat.children, level + 1));
+      }
+    });
+
+    return result;
+  };
+
+  const flatCategories = flattenCategories(categories);
 
   // API base URL
   const API_BASE_URL = "https://kawaiworld-nkppi.ondigitalocean.app/api";
   // const API_BASE_URL =  'http://localhost:1209/api';
-  
 
   console.log("ProductForm variant prop:", variant);
 
-useEffect(() => {
-  if (!variant) return;
+  useEffect(() => {
+    if (!variant) return;
 
-  setFormData({
-    _id: (variant as any)._id,
-    id: (variant as any).id,
-    name: variant.name ?? "",
-    description: variant.description ?? "",
-    categoryId: variant.categoryId ?? "",
-    brand: variant.brand ?? "",
-    isFeatured: variant.isFeatured ?? false,
-    isActive: variant.isActive ?? true,
-    status: variant.status ?? "active",
-    images: variant.images ?? [],
-    variants: (variant.variants ?? []).map(v => ({
-      _id: v._id,
-      id: v._id,
-      variantName: v.variantName,
-      price: v.price,
-      salePrice: v.salePrice,
-      stockQuantity: v.stockQuantity,
-      weight: v.weight,
-      length: v.length,
-      breadth: v.breadth,
-      height: v.height,
-      isActive: v.isActive,
-      images: v.images ?? [],
-    })),
-  });
-}, [variant]);
-
+    setFormData({
+      _id: (variant as any)._id,
+      id: (variant as any).id,
+      name: variant.name ?? "",
+      description: variant.description ?? "",
+      categoryId: variant.categoryId ?? "",
+      brand: variant.brand ?? "",
+      isFeatured: variant.isFeatured ?? false,
+      isActive: variant.isActive ?? true,
+      status: variant.status ?? "active",
+      images: variant.images ?? [],
+      variants: (variant.variants ?? []).map((v) => ({
+        _id: v._id,
+        id: v._id,
+        variantName: v.variantName,
+        price: v.price,
+        salePrice: v.salePrice,
+        stockQuantity: v.stockQuantity,
+        weight: v.weight,
+        length: v.length,
+        breadth: v.breadth,
+        height: v.height,
+        isActive: v.isActive,
+        images: v.images ?? [],
+      })),
+    });
+  }, [variant]);
 
   // Handle main field changes
   const handleMainFieldChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -153,7 +178,7 @@ useEffect(() => {
 
   // Demo function for image upload
   const uploadImages = async (
-    files: File[]
+    files: File[],
   ): Promise<Array<{ url: string; public_id: string }>> => {
     try {
       const formData = new FormData();
@@ -183,7 +208,7 @@ useEffect(() => {
 
   // Handle main image upload
   const handleMainImageChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -236,7 +261,7 @@ useEffect(() => {
   // Handle variant image upload
   const handleVariantImageChange = async (
     variantIndex: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -284,7 +309,7 @@ useEffect(() => {
       newVariants[variantIndex] = {
         ...newVariants[variantIndex],
         images: (newVariants[variantIndex].images ?? []).filter(
-          (_, i) => i !== imageIndex
+          (_, i) => i !== imageIndex,
         ),
       };
       return { ...prev, variants: newVariants };
@@ -294,7 +319,7 @@ useEffect(() => {
   // Variant management
   const handleVariantChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const { name, value, type, checked } = e.target;
     const newVariants = [...(formData.variants ?? [])];
@@ -307,7 +332,7 @@ useEffect(() => {
 
   const handleVariantNumberChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const { name, value } = e.target;
     const newVariants = [...(formData.variants ?? [])];
@@ -324,7 +349,7 @@ useEffect(() => {
       variants: [
         ...(prev.variants ?? []),
         {
-          _id:0,
+          _id: 0,
           variantName: "",
           price: 0,
           salePrice: 0,
@@ -353,7 +378,7 @@ useEffect(() => {
   // Create or update product via API
   const createProduct = async (
     productData: ProductFormData,
-    isUpdate: boolean = false
+    isUpdate: boolean = false,
   ) => {
     const endpoint = isUpdate
       ? `${API_BASE_URL}/products/${variant?._id}`
@@ -404,7 +429,7 @@ useEffect(() => {
           error.message ||
             `Failed to ${isUpdate ? "update" : "create"} product: ${
               response.statusText
-            }`
+            }`,
         );
       }
 
@@ -457,7 +482,6 @@ useEffect(() => {
 
     // Validate variants
     for (const [index, variant] of (formData.variants ?? []).entries()) {
-
       console.log("Validating variant:", variant.price);
       if (!variant.variantName || !variant.price) {
         toast({
@@ -541,13 +565,34 @@ useEffect(() => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="categoryId">Category Name *</Label>
-                  <Input
-                    id="categoryId"
+                  <Label htmlFor="categoryId">Category *</Label>
+
+                  <Select
                     value={formData.categoryId ?? ""}
-                    onChange={handleMainFieldChange}
-                    required
-                  />
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        categoryId: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {flatCategories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          <span
+                            style={{ paddingLeft: `${cat.level * 16}px` }}
+                            className="flex items-center"
+                          >
+                            {cat.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
@@ -600,7 +645,7 @@ useEffect(() => {
                   <Select
                     value={formData.status ?? "active"}
                     onValueChange={(
-                      value: "draft" | "active" | "inactive" | "out_of_stock"
+                      value: "draft" | "active" | "inactive" | "out_of_stock",
                     ) => setFormData((prev) => ({ ...prev, status: value }))}
                   >
                     <SelectTrigger>
@@ -650,7 +695,7 @@ useEffect(() => {
                           className="flex items-center gap-1 p-1"
                         >
                           <img
-                            src={image.imageUrl }
+                            src={image.imageUrl}
                             alt={`Product preview ${index + 1}`}
                             className="h-12 w-12 object-cover rounded-sm"
                           />
@@ -666,8 +711,8 @@ useEffect(() => {
                     </div>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    {(formData.images ?? []).length} image(s) uploaded. At
-                    least one image is required.
+                    {(formData.images ?? []).length} image(s) uploaded. At least
+                    one image is required.
                   </p>
                 </div>
               </div>

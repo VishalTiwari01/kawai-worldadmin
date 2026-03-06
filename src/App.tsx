@@ -65,15 +65,15 @@ const App = () => (
                 }
               />
               <Route
-  path="/admin/categories"
-  element={
-    <PrivateRoute>
-      <AdminLayout>
-        <Categories />
-      </AdminLayout>
-    </PrivateRoute>
-  }
-/>
+                path="/admin/categories"
+                element={
+                  <PrivateRoute>
+                    <AdminLayout>
+                      <Categories />
+                    </AdminLayout>
+                  </PrivateRoute>
+                }
+              />
               <Route
                 path="/admin/users"
                 element={
@@ -104,7 +104,7 @@ const App = () => (
                   </PrivateRoute>
                 }
               />
-              
+
               <Route
                 path="/admin/analytics"
                 element={

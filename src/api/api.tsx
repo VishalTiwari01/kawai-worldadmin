@@ -2,8 +2,8 @@ import { Product } from "@/types/product";
 import { Order } from "@/types/order";
 import axios from "axios";
 
-const API_BASE_URL =  'https://kawaiworld-nkppi.ondigitalocean.app/api';
-// export const API_BASE_URL = "http://localhost:1209/api";
+// const API_BASE_URL =  'https://kawaiworld-nkppi.ondigitalocean.app/api';
+export const API_BASE_URL = "http://localhost:1209/api";
 interface SaveProductResponse {
   id: string;
   message?: string;
@@ -253,9 +253,15 @@ export const getDashboardStats = async () => {
 
 // ================= GET ROOT CATEGORIES =================
 
-export const getCategoryTree = async () => {
-  const res = await axios.get(`${API_BASE_URL}/categories/tree`);
-  return res.data.data;
+export const getCategoryTree = async (): Promise<Category[]> => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/categories/tree`);
+    console.log("Fetched category tree:", res.data);
+    return res.data?.data || [];
+  } catch (error) {
+    console.error("Error fetching category tree:", error);
+    return [];
+  }
 };
 
 // ================= GET FULL TREE =================

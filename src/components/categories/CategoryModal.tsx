@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { getCategoryTree } from "@/api/api";
@@ -33,7 +33,7 @@ export default function CategoryModal({
   const [formData, setFormData] = useState<Category>({
     name: "",
     description: "",
-    parentId: "",
+    parentId: null,
     imageUrl: "",
     sortOrder: 0,
     metaTitle: "",
@@ -43,14 +43,16 @@ export default function CategoryModal({
 
   const [imageUploading, setImageUploading] = useState(false);
 
-  // fetch category tree
+  /* ---------------- FETCH CATEGORY TREE ---------------- */
+
   const { data: categories = [] } = useQuery({
     queryKey: ["categories-tree"],
     queryFn: getCategoryTree,
   });
 
-  // flatten tree
-  const flattenCategories = (categories: any[], level = 0) => {
+  /* ---------------- FLATTEN TREE ---------------- */
+
+  const flattenCategories = (categories: any[], level = 0): any[] => {
     let result: any[] = [];
 
     categories.forEach((cat) => {
@@ -60,7 +62,7 @@ export default function CategoryModal({
         level,
       });
 
-      if (cat.children && cat.children.length > 0) {
+      if (cat.children?.length) {
         result = result.concat(flattenCategories(cat.children, level + 1));
       }
     });
@@ -70,15 +72,20 @@ export default function CategoryModal({
 
   const flatCategories = flattenCategories(categories);
 
-  // edit mode
+  /* ---------------- EDIT MODE ---------------- */
+
   useEffect(() => {
+
     if (editingCategory) {
-      setFormData(editingCategory);
+      setFormData({
+        ...editingCategory,
+        parentId: editingCategory.parentId ?? null,
+      });
     } else {
       setFormData({
         name: "",
         description: "",
-        parentId: "",
+        parentId: null,
         imageUrl: "",
         sortOrder: 0,
         metaTitle: "",
@@ -86,21 +93,33 @@ export default function CategoryModal({
         isActive: true,
       });
     }
+
   }, [editingCategory]);
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
+  /* ---------------- INPUT CHANGE ---------------- */
 
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+
+    const { name, value, type } = e.target;
+
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value === "" && name === "parentId" ? null : value,
+    }));
   };
 
-  // image upload
-  const handleImageUpload = async (e: any) => {
+  /* ---------------- IMAGE UPLOAD ---------------- */
 
-    const file = e.target.files[0];
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     const data = new FormData();
     data.append("image", file);
@@ -113,25 +132,25 @@ export default function CategoryModal({
         "https://kawaiworld-nkppi.ondigitalocean.app/api/uploads/images",
         data,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         imageUrl: res.data.url,
-      });
+      }));
 
     } catch (err) {
       console.error("Image upload error:", err);
+    } finally {
+      setImageUploading(false);
     }
-
-    setImageUploading(false);
   };
 
-  const handleSubmit = (e: any) => {
+  /* ---------------- SUBMIT ---------------- */
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
   };
@@ -139,9 +158,10 @@ export default function CategoryModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
 
-      <div className="bg-white w-[500px] rounded-lg p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+      <div className="bg-white w-[520px] rounded-lg p-6 shadow-lg">
 
         <h2 className="text-xl font-bold mb-4">
           {editingCategory ? "Edit Category" : "Add Category"}
@@ -149,23 +169,28 @@ export default function CategoryModal({
 
         <form onSubmit={handleSubmit} className="space-y-3">
 
+          {/* NAME */}
+
           <input
             name="name"
             placeholder="Category Name"
             value={formData.name}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+            required
           />
+
+          {/* DESCRIPTION */}
 
           <textarea
             name="description"
             placeholder="Description"
-            value={formData.description}
+            value={formData.description || ""}
             onChange={handleChange}
             className="w-full border p-2 rounded"
           />
 
-          {/* Parent Category */}
+          {/* PARENT CATEGORY */}
 
           <select
             name="parentId"
@@ -173,9 +198,10 @@ export default function CategoryModal({
             onChange={handleChange}
             className="w-full border p-2 rounded"
           >
+
             <option value="">Root Category</option>
 
-            {flatCategories.map((cat: any) => (
+            {flatCategories.map((cat) => (
               <option key={cat._id} value={cat._id}>
                 {"—".repeat(cat.level)} {cat.name}
               </option>
@@ -187,52 +213,65 @@ export default function CategoryModal({
 
           <input type="file" onChange={handleImageUpload} />
 
-          {imageUploading && <p>Uploading image...</p>}
+          {imageUploading && (
+            <p className="text-sm text-gray-500">Uploading image...</p>
+          )}
 
           {formData.imageUrl && (
             <img
               src={formData.imageUrl}
-              className="w-32 h-32 object-cover"
+              alt="category"
+              className="w-28 h-28 object-cover rounded"
             />
           )}
+
+          {/* SORT ORDER */}
 
           <input
             type="number"
             name="sortOrder"
             placeholder="Sort Order"
-            value={formData.sortOrder}
+            value={formData.sortOrder || 0}
             onChange={handleChange}
             className="w-full border p-2 rounded"
           />
+
+          {/* META TITLE */}
 
           <input
             name="metaTitle"
             placeholder="Meta Title"
-            value={formData.metaTitle}
+            value={formData.metaTitle || ""}
             onChange={handleChange}
             className="w-full border p-2 rounded"
           />
+
+          {/* META DESCRIPTION */}
 
           <textarea
             name="metaDescription"
             placeholder="Meta Description"
-            value={formData.metaDescription}
+            value={formData.metaDescription || ""}
             onChange={handleChange}
             className="w-full border p-2 rounded"
           />
 
-          <label className="flex gap-2 items-center">
+          {/* ACTIVE */}
+
+          <label className="flex items-center gap-2">
 
             <input
               type="checkbox"
               name="isActive"
-              checked={formData.isActive}
+              checked={formData.isActive || false}
               onChange={handleChange}
             />
 
             Active
 
           </label>
+
+          {/* ACTION BUTTONS */}
 
           <div className="flex justify-end gap-3 pt-3">
 
